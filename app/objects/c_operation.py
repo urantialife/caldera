@@ -241,6 +241,35 @@ class Operation(FirstClassObjectInterface, BaseObject):
         except Exception:
             logging.error('Error saving operation report (%s)' % self.name, exc_info=True)
 
+    async def event_logs(self, file_svc, data_svc, output=False):
+        events = []
+        for step in self.chain:
+            agent_info = await self._get_agent_info_for_event_log(step.paw, data_svc)
+            ability_info = dict(ability_id=step.ability.ability_id,
+                                ability_name=step.ability.name,
+                                ability_description=step.ability.description)
+            operation_info = dict(operation_name=self.name,
+                                  operation_start=self.start.strftime('%Y-%m-%d %H:%M:%S'),
+                                  operation_adversary=self.adversary.name)
+            event_dict = dict(ability_id=step.ability.ability_id,
+                              command=step.command,
+                              delegated_timestamp=step.decide.strftime('%Y-%m-%d %H:%M:%S'),
+                              finished_timestamp=step.finish,
+                              status=step.status,
+                              platform=step.ability.platform,
+                              executor=step.ability.executor,
+                              pid=step.pid,
+                              agent_metadata=agent_info,
+                              ability_metadata=ability_info,
+                              operation_metadata=operation_info,
+                              attack=dict(tactic=step.ability.tactic,
+                                          technique_name=step.ability.technique_name,
+                                          technique_id=step.ability.technique_id))
+            if output and step.output:
+                event_dict['output'] = self.decode_bytes(file_svc.read_result_file(step.unique))
+            events.append(event_dict)
+        return events
+
     async def run(self, services):
         # load objective
         obj = await services.get('data_svc').locate('objectives', match=dict(id=self.adversary.objective))
@@ -334,6 +363,26 @@ class Operation(FirstClassObjectInterface, BaseObject):
                 else:
                     return dict(reason='Agent untrusted', reason_id=self.Reason.UNTRUSTED.value,
                                 ability_id=ability.ability_id, ability_name=ability.name)
+
+    @staticmethod
+    async def _get_agent_info_for_event_log(agent_paw, data_svc):
+        agent_search_results = await data_svc.locate('agents', match=dict(paw=agent_paw))
+        if not agent_search_results:
+            return {}
+        else:
+            # We expect only one agent per paw.
+            agent = agent_search_results[0]
+            return dict(paw=agent.paw,
+                        group=agent.group,
+                        architecture=agent.architecture,
+                        username=agent.username,
+                        location=agent.location,
+                        pid=agent.pid,
+                        ppid=agent.ppid,
+                        privilege=agent.privilege,
+                        host=agent.host,
+                        contact=agent.contact,
+                        created=agent.created.strftime('%Y-%m-%d %H:%M:%S'))
 
     class Reason(Enum):
         PLATFORM = 0
