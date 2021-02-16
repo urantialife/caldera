@@ -11,7 +11,7 @@ class InstructionSchema(ma.Schema):
     timeout = ma.fields.Int()
     payloads = ma.fields.List(ma.fields.String())
     deadman = ma.fields.Boolean()
-    uploads = ma.fields.List(ma.fields.Dict(keys=ma.fields.String(), values=ma.fields.String()))
+    uploads = ma.fields.List(ma.fields.String(), missing=None)
 
     @ma.post_load
     def build_instruction(self, data, **_):

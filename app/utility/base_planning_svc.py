@@ -47,7 +47,12 @@ class BasePlanningService(BaseService):
         link_variants = []
         for link in links:
             decoded_test = agent.replace(link.command, file_svc=self.get_service('file_svc'))
-            variables = re.findall(self.re_variable, decoded_test)
+            if not link.cleanup:
+                nested_upload_variables = [re.findall(self.re_variable, upload) for upload in link.ability.uploads]
+                flattened_upload_variables = [var for var_list in nested_upload_variables for var in var_list]
+            else:
+                flattened_upload_variables = []
+            variables = re.findall(self.re_variable, decoded_test) + flattened_upload_variables
             if variables:
                 relevant_facts = await self._build_relevant_facts([x for x in set(variables) if len(x.split('.')) > 2],
                                                                   facts)
@@ -58,11 +63,15 @@ class BasePlanningService(BaseService):
                         try:
                             copy_test = copy.copy(decoded_test)
                             copy_link = copy.deepcopy(link)
-                            variant, score, used = await self._build_single_test_variant(copy_test, combo, link.ability.executor)
-                            copy_link.command = self.encode_string(variant)
+                            copy_uploads = [] if link.cleanup else link.ability.uploads.copy()
+                            command_variant, uploads_variant, score, used = await self._build_single_test_variant(
+                                copy_test, combo, link.ability.executor, copy_uploads
+                            )
+                            copy_link.command = self.encode_string(command_variant)
                             copy_link.score = score
                             copy_link.used.extend(used)
                             copy_link.apply_id(agent.host)
+                            copy_link.uploads = uploads_variant
                             link_variants.append(copy_link)
                         except Exception as ex:
                             logging.error('Could not create test variant: %s.\nLink=%s' % (ex, link.__dict__))
@@ -152,7 +161,7 @@ class BasePlanningService(BaseService):
         return links
 
     @staticmethod
-    async def _build_single_test_variant(copy_test, combo, executor):
+    async def _build_single_test_variant(copy_test, combo, executor, copy_uploads):
         """
         Replace all variables with facts from the combo to build a single test variant
         """
@@ -162,7 +171,8 @@ class BasePlanningService(BaseService):
             used.append(var)
             re_variable = re.compile(r'#{(%s.*?)}' % var.trait, flags=re.DOTALL)
             copy_test = re.sub(re_variable, str(var.escaped(executor)).strip().encode('unicode-escape').decode('utf-8'), copy_test)
-        return copy_test, score, used
+            copy_uploads = [re.sub(re_variable, var.value.strip().encode('unicode-escape').decode('utf-8'), upload) for upload in copy_uploads]
+        return copy_test, copy_uploads, score, used
 
     @staticmethod
     def _is_fact_bound(fact):
