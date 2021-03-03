@@ -43,9 +43,14 @@
 [submodule "plugins/fieldmanual"]
 	path = plugins/fieldmanual
 	url = https://github.com/mitre/fieldmanual.git
+	branch = dynamic-plugin-docs
 [submodule "plugins/debrief"]
 	path = plugins/debrief
 	url = https://github.com/mitre/debrief.git
 [submodule "plugins/emu"]
 	path = plugins/emu
 	url = https://github.com/mitre/emu.git
+[submodule "plugins/skeleton"]
+	path = plugins/skeleton
+	url = https://github.com/mitre/skeleton.git
+	branch = plugin-docs
