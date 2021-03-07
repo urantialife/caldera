@@ -1,0 +1,42 @@
+name: $(BuildDefinitionName)_$(Date:yyyyMMdd)$(Rev:.rr)
+resources:
+  repositories:
+  - repository: tox
+    type: github
+    endpoint: toxdevorg
+    name: tox-dev/azure-pipelines-template
+    ref: master
+
+trigger:
+  batch: true
+
+jobs:
+  - template: run-tox-env.yml@tox
+    parameters:
+      tox_version: ''
+      jobs:
+        fix_lint:
+          before:
+          - task: CacheBeta@0
+            displayName: cache pre-commit
+            inputs:
+              key: pre-commit | .pre-commit-config.yaml
+              path: $(PRE_COMMIT_HOME)
+        docs: null
+        py38:
+          image: [linux, windows, macOs]
+        py37:
+          image: [linux, windows, macOs]
+        py36:
+          image: [linux, windows, macOs]
+        dev: null
+        package_description: null
+      coverage:
+        with_toxenv: 'coverage-ci' # generate .tox/.coverage, .tox/coverage.xml after test run
+        for_envs: [py38, py37, py36]
+      before:
+        - task: UsePythonVersion@0
+          condition: and(succeeded(), in(variables['TOXENV'], 'pypy'))
+          displayName: provision pypy 3
+          inputs:
+            versionSpec: 'pypy3'
