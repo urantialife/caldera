@@ -29,9 +29,8 @@ class Contact(BaseWorld):
                             sleep=await agent.calculate_sleep(),
                             watchdog=agent.watchdog,
                             instructions=json.dumps([json.dumps(i.display) for i in instructions]))
-            if agent.pending_contact != agent.contact:
-                response['new_contact'] = agent.pending_contact
-                self.log.debug('Sending agent instructions to switch from C2 channel %s to %s' % (agent.contact, agent.pending_contact))
+            self.contact_svc.add_contact_switch_instruction_to_beacon_response(agent, response)
+            print(response)
             return web.Response(text=self.contact_svc.encode_string(json.dumps(response)))
         except Exception as e:
             self.log.error('Malformed beacon: %s' % e)

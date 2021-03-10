@@ -574,10 +574,7 @@ class Handler(asyncio.DatagramProtocol):
                         sleep=await agent.calculate_sleep(),
                         watchdog=agent.watchdog,
                         instructions=json.dumps([json.dumps(i.display) for i in instructions]))
-        if agent.pending_contact != agent.contact:
-            response['new_contact'] = agent.pending_contact
-            self.log.debug('Sending agent instructions to switch from C2 channel %s to %s'
-                           % (agent.contact, agent.pending_contact))
+        self.contact_svc.add_contact_switch_instruction_to_beacon_response(agent, response)
         return response
 
     def _store_beacon_response(self, beacon_id, response_dict):

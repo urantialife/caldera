@@ -106,7 +106,7 @@ class Agent(FirstClassObjectInterface, BaseObject):
         self.origin_link_id = origin_link_id
         self.deadman_enabled = deadman_enabled
         self.available_contacts = available_contacts if available_contacts else [self.contact]
-        self.pending_contact = contact
+        self.pending_contact = None
         self.host_ip_addrs = host_ip_addrs if host_ip_addrs else []
 
     def store(self, ram):
@@ -179,6 +179,11 @@ class Agent(FirstClassObjectInterface, BaseObject):
         if not ability.privilege or self.Privileges[self.privilege].value >= self.Privileges[ability.privilege].value:
             return True
         return False
+
+    def get_pending_contact_switch(self):
+        if self.pending_contact and self.pending_contact != self.contact:
+            return self.pending_contact
+        return None
 
     async def bootstrap(self, data_svc):
         abilities = []
