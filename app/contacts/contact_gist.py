@@ -148,7 +148,7 @@ class Contact(BaseWorld):
                         sleep=await agent.calculate_sleep(),
                         watchdog=agent.watchdog,
                         instructions=json.dumps([json.dumps(i.display) for i in instructions]))
-        self.contact_svc.add_contact_switch_instruction_to_beacon_response(agent, response)
+        self.contact_svc.add_contact_switch_to_beacon_response(agent, response)
         await self._post_instructions(self._encode_string(json.dumps(response).encode('utf-8')), agent.paw)
 
     async def _post_instructions(self, text, paw):

@@ -29,8 +29,7 @@ class Contact(BaseWorld):
                             sleep=await agent.calculate_sleep(),
                             watchdog=agent.watchdog,
                             instructions=json.dumps([json.dumps(i.display) for i in instructions]))
-            self.contact_svc.add_contact_switch_instruction_to_beacon_response(agent, response)
-            print(response)
+            self.contact_svc.add_contact_switch_to_beacon_response(agent, response)
             return web.Response(text=self.contact_svc.encode_string(json.dumps(response)))
         except Exception as e:
             self.log.error('Malformed beacon: %s' % e)

@@ -76,13 +76,14 @@ class ContactService(ContactServiceInterface, BaseService):
         contact = [c for c in self.contacts if c.name == name]
         return contact[0]
 
-    def add_contact_switch_instruction_to_beacon_response(self, agent, beacon_response):
+    def add_contact_switch_to_beacon_response(self, agent, beacon_response):
         """Checks if agent has a pending contact switch. If so, adds it to the beacon response."""
         pending_contact = agent.get_pending_contact_switch()
         if pending_contact:
             self.log.debug('Setting agent instructions to switch from C2 channel %s to %s' %
                            (agent.contact, pending_contact))
             beacon_response['new_contact'] = pending_contact
+            agent.pending_contact = None
 
     """ PRIVATE """
 
