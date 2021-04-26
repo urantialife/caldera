@@ -18,9 +18,9 @@ class Contact(BaseWorld):
         web_socket = self.get_config('app.contact.websocket')
         try:
             ws_protocol = self.get_config('app.contact.websocket.protocol')
-            if 'ws' in ws_protocol:
+            if 'ws' == ws_protocol:
                 await websockets.serve(self.handler.handle, *web_socket.split(':'))
-            elif 'wss' in ws_protocol:
+            elif 'wss' == ws_protocol:
                 self.log.debug('Using secure websocket')
                 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
                 localhost_pem = Path.joinpath(Path(__file__).parents[2], self.get_config('app.contact.websocket.pem'))

@@ -20,6 +20,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 ADD . .
 
 EXPOSE 8888
+EXPOSE 8443
 EXPOSE 7010
 EXPOSE 7011/udp
 EXPOSE 7012
