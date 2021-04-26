@@ -1,4 +1,7 @@
+import ssl
 import websockets
+
+from pathlib import Path
 
 from app.utility.base_world import BaseWorld
 
@@ -14,9 +17,17 @@ class Contact(BaseWorld):
     async def start(self):
         web_socket = self.get_config('app.contact.websocket')
         try:
-            await websockets.serve(self.handler.handle, *web_socket.split(':'))
+            ws_protocol = self.get_config('app.contact.websocket.protocol')
+            if 'ws' in ws_protocol:
+                await websockets.serve(self.handler.handle, *web_socket.split(':'))
+            elif 'wss' in ws_protocol:
+                self.log.debug('Using secure websocket')
+                ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                localhost_pem = Path.joinpath(Path(__file__).parents[2], self.get_config('app.contact.websocket.pem'))
+                ssl_context.load_cert_chain(localhost_pem)
+                await websockets.serve(self.handler.handle, *web_socket.split(':'), ssl=ssl_context)
         except OSError as e:
-            self.log.error("WebSocket error: {}".format(e))
+            self.log.error('WebSocket error: {}'.format(e))
 
 
 class Handler:

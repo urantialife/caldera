@@ -14,6 +14,8 @@ app.contact.tunnel.ssh.user_password: s4ndc4t!
 app.contact.tcp: 0.0.0.0:7010
 app.contact.udp: 0.0.0.0:7011
 app.contact.websocket: 0.0.0.0:7012
+app.contact.websocket.protocol: ws
+app.contact.websocket.pem: plugins/ssl/conf/insecure_certificate.pem
 crypt_salt: REPLACE_WITH_RANDOM_VALUE
 encryption_key: ADMIN123
 exfil_dir: /tmp/caldera
