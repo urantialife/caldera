@@ -157,6 +157,11 @@ class AuthService(AuthServiceInterface, BaseService):
         await remember(request, response, username)
         raise response
 
+    async def is_request_authorized(self, request, permissions):
+        required_perms = set(permissions)
+        user_perms = set(await self.get_permissions(request))
+        return required_perms.issubset(user_perms)
+
     async def check_permissions(self, group, request):
         try:
             if self.request_has_valid_api_key(request):

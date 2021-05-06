@@ -21,11 +21,54 @@ def _wrap_async_method(method: types.MethodType):
     return functools.wraps(method)(wrapper)
 
 
-def _wrap_method(method: types.MethodType):
+def _wrap_sync_method(method: types.MethodType):
     """Wrap the input bound method in an async function."""
     def wrapper(*args, **kwargs):
         return method(*args, **kwargs)
     return functools.wraps(method)(wrapper)
+
+
+def _wrap_method(method: types.MethodType):
+    if inspect.iscoroutinefunction(method):
+        return _wrap_async_method(method)
+    return _wrap_method(method)
+
+
+def is_handler_authorization_exempt(handler):
+    if is_handler_authentication_exempt(handler):
+        return True
+    return len(get_required_permissions(handler)) == 0
+
+
+def authorization_required(*permissions):
+    def wrapper(handler):
+        if inspect.ismethod(handler):
+            handler = _wrap_method(handler)
+
+        handler.__caldera_required_permissions__ = tuple(permissions)
+        return handler
+    return wrapper
+
+
+def get_required_permissions(handler):
+    try:
+        required_permissions = handler.__caldera_required_permissions__
+    except AttributeError:
+        required_permissions = ()
+    return required_permissions
+
+
+def authorization_middleware_factory(auth_svc):
+    @web.middleware
+    async def authorization_middleware(request, handler):
+        if is_handler_authentication_exempt(handler):
+            return await handler(request)
+        if is_handler_authorization_exempt(handler):
+            return await handler(request)
+        if await auth_svc.is_request_authorized(request, get_required_permissions(handler)):
+            return await handler(request)
+        raise web.HTTPForbidden()
+    return authorization_middleware
 
 
 def authentication_exempt(handler):
@@ -38,10 +81,7 @@ def authentication_exempt(handler):
     # Can't set attributes directly on a bound method so we need to
     # wrap it in a function that we can mark it as unauthenticated
     if inspect.ismethod(handler):
-        if inspect.iscoroutinefunction(handler):
-            handler = _wrap_async_method(handler)
-        else:
-            handler = _wrap_method(handler)
+        handler = _wrap_method(handler)
 
     handler.__caldera_unauthenticated__ = True
     return handler
