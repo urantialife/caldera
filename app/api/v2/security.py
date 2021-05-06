@@ -22,7 +22,6 @@ def _wrap_async_method(method: types.MethodType):
 
 
 def _wrap_sync_method(method: types.MethodType):
-    """Wrap the input bound method in an async function."""
     def wrapper(*args, **kwargs):
         return method(*args, **kwargs)
     return functools.wraps(method)(wrapper)
@@ -31,7 +30,7 @@ def _wrap_sync_method(method: types.MethodType):
 def _wrap_method(method: types.MethodType):
     if inspect.iscoroutinefunction(method):
         return _wrap_async_method(method)
-    return _wrap_method(method)
+    return _wrap_sync_method(method)
 
 
 def is_handler_authorization_exempt(handler):
