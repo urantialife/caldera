@@ -349,13 +349,8 @@
                                             <template x-if="selectedLink === link && selectedLinkResults">
                                                 <div class="mb-5">
                                                     <p class="is-size-7">Output: </p>
-                                                    <span x-show="selectedLinkResults?.length <= 12"
-                                                          x-bind:class="selectedLinkResults?.length > 12 && 'output-container'">
-                                                        <code class="is-size-7" x-text="selectedLinkResults"></code>
-                                                    </span>
                                                     <button class="button is-primary is-small" x-on:click="openModal='showOutput'"
-                                                          title="view more output"
-                                                          x-show="selectedLinkResults?.length > 12">View Output</button>
+                                                          title="view more output">View Output</button>
                                                 </div>
                                             </template>
                                         </td>
