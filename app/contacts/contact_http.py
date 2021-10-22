@@ -24,6 +24,11 @@ class Contact(BaseWorld):
             profile = json.loads(self.contact_svc.decode_bytes(await request.read()))
             profile['paw'] = profile.get('paw')
             profile['contact'] = profile.get('contact', self.name)
+            # MANUAL HACK (present only here)
+            if 'origin_link_id' in profile:
+                if isinstance(profile['origin_link_id'], int):
+                    profile['origin_link_id'] = str(profile['origin_link_id'])
+            #################################
             agent, instructions = await self.contact_svc.handle_heartbeat(**profile)
             response = dict(paw=agent.paw,
                             sleep=await agent.calculate_sleep(),

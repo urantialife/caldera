@@ -1,4 +1,4 @@
-ability_refresh: 60
+ability_refresh: 300
 api_key_blue: BLUEADMIN123
 api_key_red: ADMIN123
 app.contact.dns.domain: mycaldera.caldera
@@ -27,17 +27,12 @@ encryption_key: ADMIN123
 exfil_dir: /tmp/caldera
 host: 0.0.0.0
 plugins:
-- access
-- atomic
-- compass
 - debrief
-- fieldmanual
-- gameboard
-- manx
-- response
+- brawler
+- range
+- dark
 - sandcat
 - stockpile
-- training
 port: 8888
 reports_dir: /tmp
 auth.login.handler.module: default
