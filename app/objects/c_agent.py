@@ -113,7 +113,7 @@ class Agent(FirstClassObjectInterface, BaseObject):
         self.pid = pid
         self.ppid = ppid
         self.trusted = trusted
-        self.created = datetime.now()
+        self.created = datetime.utcnow()
         self.last_seen = self.created
         self.last_trusted_seen = self.created
         self.executors = executors
@@ -189,7 +189,7 @@ class Agent(FirstClassObjectInterface, BaseObject):
         return potential_executors[0]
 
     async def heartbeat_modification(self, **kwargs):
-        now = datetime.now()
+        now = datetime.utcnow()
         self.last_seen = now
         if self.trusted:
             self.last_trusted_seen = now

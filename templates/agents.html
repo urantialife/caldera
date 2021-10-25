@@ -392,11 +392,11 @@
                         </tr>
                         <tr>
                             <th class="has-text-right">Last Seen</th>
-                            <td x-text="selectedAgent.last_seen"></td>
+                            <td x-text="selectedAgent.last_seen + ' UTC'"></td>
                         </tr>
                         <tr>
                             <th class="has-text-right">Created</th>
-                            <td x-text="selectedAgent.created"></td>
+                            <td x-text="selectedAgent.created + ' UTC'"></td>
                         </tr>
                         <tr>
                             <th class="has-text-right">Architecture</th>
@@ -628,7 +628,7 @@
 
             getAgentStatus(agent) {
                 let lastSeen = new Date(agent.last_seen).getTime();
-                let isAlive = Date.now() - lastSeen < (agent.sleep_max * 1000);
+                let isAlive = Date.now() - lastSeen < (agent.sleep_max * 1000) + 500;
 
                 if (agent.sleep_max === 3 && agent.sleep_min === 3 && agent.watchdog === 1) {
                     return (Date.now() - lastSeen > 60000) ? 'dead' : 'pending kill'
