@@ -6,7 +6,7 @@ import json
 import os
 import time
 from collections import namedtuple
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from importlib import import_module
 
 import aiohttp_jinja2
@@ -42,7 +42,7 @@ class AppService(AppServiceInterface, BaseService):
                 trusted_agents = await self.get_service('data_svc').locate('agents', match=dict(trusted=1))
                 next_check = self.get_config(name='agents', prop='untrusted_timer')
                 for a in trusted_agents:
-                    silence_time = (datetime.now() - a.last_trusted_seen).total_seconds()
+                    silence_time = (datetime.now(timezone.utc) - a.last_trusted_seen).total_seconds()
                     if silence_time > (self.get_config(name='agents', prop='untrusted_timer') + int(a.sleep_max)):
                         self.log.debug('Agent (%s) now untrusted. Last seen %s sec ago' % (a.paw, int(silence_time)))
                         a.trusted = 0

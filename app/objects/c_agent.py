@@ -1,6 +1,6 @@
 import re
 from base64 import b64decode
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import marshmallow as ma
@@ -14,6 +14,7 @@ from app.utility.base_service import BaseService
 
 
 class AgentFieldsSchema(ma.Schema):
+    AGENT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
     paw = ma.fields.String(allow_none=True)
     sleep_min = ma.fields.Integer()
@@ -43,8 +44,8 @@ class AgentFieldsSchema(ma.Schema):
     host_ip_addrs = ma.fields.List(ma.fields.String(), allow_none=True)
 
     display_name = ma.fields.String(dump_only=True)
-    created = ma.fields.DateTime(format=BaseObject.TIME_FORMAT, dump_only=True)
-    last_seen = ma.fields.DateTime(format=BaseObject.TIME_FORMAT, dump_only=True)
+    created = ma.fields.DateTime(format=AGENT_TIME_FORMAT, dump_only=True)
+    last_seen = ma.fields.DateTime(format=AGENT_TIME_FORMAT, dump_only=True)
     links = ma.fields.List(ma.fields.Nested(LinkSchema), dump_only=True)
     pending_contact = ma.fields.String()
 
@@ -113,7 +114,7 @@ class Agent(FirstClassObjectInterface, BaseObject):
         self.pid = pid
         self.ppid = ppid
         self.trusted = trusted
-        self.created = datetime.now()
+        self.created = datetime.now(timezone.utc)
         self.last_seen = self.created
         self.last_trusted_seen = self.created
         self.executors = executors
@@ -189,7 +190,7 @@ class Agent(FirstClassObjectInterface, BaseObject):
         return potential_executors[0]
 
     async def heartbeat_modification(self, **kwargs):
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         self.last_seen = now
         if self.trusted:
             self.last_trusted_seen = now
