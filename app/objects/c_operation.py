@@ -5,7 +5,7 @@ import re
 import uuid
 from collections import defaultdict
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from importlib import import_module
 
@@ -246,7 +246,7 @@ class Operation(FirstClassObjectInterface, BaseObject):
     async def active_agents(self):
         active = []
         for agent in self.agents:
-            if agent.last_seen > self.start:
+            if agent.last_seen > self.start.astimezone(timezone.utc):
                 active.append(agent)
         return active
 
@@ -505,7 +505,7 @@ class Operation(FirstClassObjectInterface, BaseObject):
                         privilege=agent.privilege,
                         host=agent.host,
                         contact=agent.contact,
-                        created=agent.created.strftime(BaseObject.TIME_FORMAT))
+                        created=agent.created.astimezone().strftime(BaseObject.TIME_FORMAT))
 
     class Reason(Enum):
         PLATFORM = 0
