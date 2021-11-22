@@ -18,11 +18,11 @@ jobs:
         style:
           image: [ubuntu-20.04]
         py37:
-          image: [ubuntu-20.04, windows, macOs]
+          image: [ubuntu-20.04, macOs]
         py38:
-          image: [ubuntu-20.04, windows, macOs]
+          image: [ubuntu-20.04, macOs]
         py39:
-          image: [ubuntu-20.04, windows, macOs]
+          image: [ubuntu-20.04, macOs]
       coverage:
         with_toxenv: "coverage"
         for_envs: [py39, py38, py37]
