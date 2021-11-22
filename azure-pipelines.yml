@@ -1,30 +1,27 @@
 name: $(BuildDefinitionName)_$(Date:yyyyMMdd)$(Rev:.rr)
+resources:
+  repositories:
+    - repository: tox
+      type: github
+      endpoint: mitre
+      name: tox-dev/azure-pipelines-template
+      ref: refs/tags/0.2
 
 trigger:
   batch: true
 
 jobs:
-- job:
-  pool:
-    vmImage: 'ubuntu-latest'
-  strategy:
-    matrix:
-      Python37:
-        python.version: '3.7'
-      Python38:
-        python.version: '3.8'
-      Python39:
-        python.version: '3.9'
-
-  steps:
-  - task: UsePythonVersion@0
-    displayName: 'Use Python $(python.version)'
-    inputs:
-      versionSpec: '$(python.version)'
-
-  - script: pip install tox
-    displayName: 'Install Tox'
-
-  - script: tox -e py
-    displayName: 'Run Tox'
-
+  - template: run-tox-env.yml@tox
+    parameters:
+      tox_version: ""
+      jobs:
+        style: null
+        py37:
+          image: [linux, windows, macOs]
+        py38:
+          image: [linux, windows, macOs]
+        py39:
+          image: [linux, windows, macOs]
+      coverage:
+        with_toxenv: "coverage"
+        for_envs: [py39, py38, py37]
