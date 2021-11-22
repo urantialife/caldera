@@ -5,7 +5,7 @@ resources:
       type: github
       endpoint: mitre
       name: tox-dev/azure-pipelines-template
-      ref: refs/tags/0.2
+      ref: refs/heads/master
 
 trigger:
   batch: true
