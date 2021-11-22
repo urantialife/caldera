@@ -13,9 +13,10 @@ trigger:
 jobs:
   - template: run-tox-env.yml@tox
     parameters:
-      tox_version: ""
+      tox_version: "tox"
       jobs:
-        style: null
+        style:
+          image: [ubuntu-20.04]
         py37:
           image: [ubuntu-20.04, windows, macOs]
         py38:
