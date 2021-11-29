@@ -37,27 +37,58 @@
     <template x-if="selectedProfileId && !isCreatingProfile">
         <div class="section" x-init="$watch('selectedProfileAbilities', val => findAbilityDependencies())">
             <div x-show="!isEditingProfile">
-                <h3 x-text="selectedProfileName" class="pointer tooltip has-tooltip-arrow" data-tooltip="Click to edit" @click="isEditingProfile = true"></h3>
-                <p x-text="selectedProfileDescription" class="pointer" @click="isEditingProfile = true"></p> <br>
+                <div class="is-flex mb-3">
+                    <h3 x-text="selectedProfile.name" class="pointer tooltip has-tooltip-arrow mb-0" data-tooltip="Click to edit" @click="isEditingProfile = true"></h3>
+                    <div class="tags ml-3" @click="isEditingProfile = true">
+                        <template x-for="(tag, index) of selectedProfile.tags" :key="`${tag}-${index}`">
+                            <span class="tag is-rounded is-primary" x-text="tag"></span>
+                        </template>
+                    </div>
+                </div>
+                <p x-text="selectedProfile.description" class="pointer" @click="isEditingProfile = true"></p> <br>
             </div>
             <form x-show="isEditingProfile">
                 <div class="field">
+                    <label class="label">Name</label>
                     <div class="control">
-                        <input class="input" x-model="selectedProfileName" x-on:change="unsavedChanges = true" placeholder="Adversary Name" x-bind:class="{ 'is-danger': fieldErrorsProfile.includes('name') }">
+                        <input class="input" x-model="selectedProfile.name" x-on:change="unsavedChanges = true" placeholder="Adversary Name" x-bind:class="{ 'is-danger': fieldErrorsProfile.includes('name') }">
                         <p x-show="fieldErrorsProfile.includes('name')" class="help is-danger">This field is required.</p>
                     </div>
                 </div>
                 <div class="field">
+                    <label class="label">Description</label>
                     <div class="control">
-                        <input class="input is-small" x-model="selectedProfileDescription" placeholder="Adversary Description" x-on:change="unsavedChanges = true" x-bind:class="{ 'is-danger': fieldErrorsProfile.includes('description') }">
+                        <input class="input is-small" x-model="selectedProfile.description" placeholder="Adversary Description" x-on:change="unsavedChanges = true" x-bind:class="{ 'is-danger': fieldErrorsProfile.includes('description') }">
                         <p x-show="fieldErrorsProfile.includes('description')" class="help is-danger">This field is required.</p>
                     </div>
                 </div>
                 <div class="field">
+                    <label class="label">Tags</label>
                     <div class="control">
-                        <a class="button is-small is-primary" @click="isEditingProfile = false">Done</a>
+                        <div class="tags" x-bind:class="{ 'mr-3': selectedProfile.tags.length }">
+                            <template x-for="(tag, index) of selectedProfile.tags" :key="`${tag}-${index}`">
+                                <span class="tag is-rounded is-primary">
+                                    <span x-text="tag"></span>
+                                    <button class="delete" type="button" @click="selectedProfile.tags.splice(index, 1); unsavedChanges = true"></button>
+                                </span>
+                            </template>
+                        </div>
                     </div>
                 </div>
+                <div class="field has-addons">
+                    <div class="control">
+                        <input class="input tag-input is-small" x-model="tagToAdd" placeholder="Enter a tag..." @keyup.enter="addTag()">
+                    </div>
+                    <div class="control">
+                        <button class="button is-small is-primary" type="button" @click="addTag()">+ Add tag</button>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <a class="button is-small is-primary" @click="isEditingProfile = false">Done Editting</a>
+                    </div>
+                </div>
+                <hr>
             </form>
             <div class="control-buttons is-flex is-flex-direction-row">
                 <button class="button is-small" @click="selectedAbilityId = ''; showAbilityChoiceModal = true;">
@@ -184,7 +215,7 @@
                 <p class="modal-card-title">Add Ablities from Adversary</p>
             </header>
             <section class="modal-card-body">
-                <p>Select an adversary, then select all of the abilities you'd like to append to <b x-text="selectedProfileName"></b>.</p>
+                <p>Select an adversary, then select all of the abilities you'd like to append to <b x-text="selectedProfile.name"></b>.</p>
                 <form>
                     <div class="field">
                         <label class="label">Select a profile</label>
@@ -250,7 +281,7 @@
                 <p class="modal-card-title">Link Objective</p>
             </header>
             <section class="modal-card-body">
-                <p>Specify an Objective for <b x-text="selectedProfileName"></b>.</p>
+                <p>Specify an Objective for <b x-text="selectedProfile.name"></b>.</p>
                 <form>
                     <div class="field">
                         <label class="label">Select an objective</label>
@@ -648,8 +679,8 @@
             payloads: JSON.parse('{{ payloads | tojson }}'),
 
             selectedProfileId: '',
-            selectedProfileName: undefined,
-            selectedProfileDescription: undefined,
+            selectedProfile: {},
+            selectedProfileObjectiveId: '',
             selectedProfileAbilities: [],
             unsavedChanges: false,
 
@@ -664,6 +695,7 @@
             isCreatingProfile: false,
             createProfileName: '',
             createProfileDescription: '',
+            tagToAdd: [],
 
             // Table on drag and drop
             abilityTableDragTarget: undefined,
@@ -718,27 +750,26 @@
                 this.isCreatingProfile = false;
                 this.fieldErrorsProfile = [];
 
-                const selectedAdversary = this.adversaries.find((adversary) => adversary.adversary_id === this.selectedProfileId);
-                this.selectedProfileName = selectedAdversary.name;
-                this.selectedProfileDescription = selectedAdversary.description;
-                this.selectedObjectiveId = this.objectives.find((objective) => objective.id === selectedAdversary.objective).id;
-                this.selectedProfileAbilities = selectedAdversary.atomic_ordering.map((ability_id) => ({ ...this.abilities.find((ability) => ability.ability_id === ability_id) }));
+                this.selectedProfile = this.adversaries.find((adversary) => adversary.adversary_id === this.selectedProfileId);
+                this.selectedObjectiveId = this.objectives.find((objective) => objective.id === this.selectedProfile.objective).id;
+                this.selectedProfileAbilities = this.selectedProfile.atomic_ordering.map((ability_id) => ({ ...this.abilities.find((ability) => ability.ability_id === ability_id) }));
 
                 this.findAbilityDependencies();
             },
 
             saveProfile() {
-                this.fieldErrorsProfile = validateInputs({ name: this.selectedProfileName, description: this.selectedProfileDescription }, this.requiredFieldsProfile);
+                this.fieldErrorsProfile = validateInputs({ name: this.selectedProfile.name, description: this.selectedProfile.description }, this.requiredFieldsProfile);
                 if (this.fieldErrorsProfile.length) {
                     this.isEditingProfile = true;
                     return;
                 }
 
                 const requestBody = {
-                    name: this.selectedProfileName,
-                    description: this.selectedProfileDescription,
+                    name: this.selectedProfile.name,
+                    description: this.selectedProfile.description,
                     objective: this.selectedObjectiveId,
                     atomic_ordering: this.selectedProfileAbilities.map((ability) => ability.ability_id),
+                    tags: this.selectedProfile.tags
                 };
 
                 apiV2('PATCH', `/api/v2/adversaries/${this.selectedProfileId}`, requestBody).then((data) => {
@@ -775,7 +806,7 @@
                     description: this.createProfileDescription,
                     atomic_ordering: [],
                     objective: this.objectives.find((o) => o.name === 'default').id,
-                    tags: [],
+                    tags: this.selectedProfile.tags,
                 };
 
                 apiV2('POST', '/api/v2/adversaries', requestBody).then((response) => {
@@ -990,6 +1021,11 @@
                 }
             },
 
+            addTag() {
+                (!this.selectedProfile.tags.includes(this.tagToAdd)) ? this.selectedProfile.tags.push(this.tagToAdd) : toast('Tag already exists', false);
+                this.unsavedChanges = true;
+            },
+
             searchForAbility() {
                 this.abilitySearchResults = [];
                 if (!this.abilitySearchQuery) return;
@@ -1119,6 +1155,16 @@
         cursor: grab;
     }
 
+    .delete {
+        background-color: transparent;
+    }
+    .delete::before {
+        background-color: white;
+    }
+    .delete::after {
+        background-color: white;
+    }
+
     .lock {
         background-color: blueviolet !important;
     }
@@ -1148,6 +1194,10 @@
     }
     .search-results p:hover {
         background-color: #484848;
+    }
+
+    .tag-input {
+        max-width: 200px;
     }
 
     .unlock {
